@@ -1,24 +1,25 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MoviesAPI.DTOs;
 using MoviesAPI.Services;
 
 namespace MoviesAPI.Controllers
 {
+    [Authorize(Roles = "Admin")]
     [Route("api/[controller]")]
     [ApiController]
     public class MoviesController : ControllerBase
     {
         private readonly IMovieService _movieService;
-        private readonly IMapper _mapper;
 
-        public MoviesController(IMovieService movieService, IMapper mapper)
+        public MoviesController(IMovieService movieService)
         {
             _movieService = movieService;
-            _mapper = mapper;
         }
 
         [HttpGet]
+        [AllowAnonymous]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetMovies()
@@ -35,6 +36,7 @@ namespace MoviesAPI.Controllers
         }
 
         [HttpGet("{movieId:int}", Name = "GetMovieById")]
+        [AllowAnonymous]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
@@ -60,6 +62,7 @@ namespace MoviesAPI.Controllers
         }
 
         [HttpGet("GetMoviesByCategory/{categoryId:int}")]
+        [AllowAnonymous]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
@@ -81,6 +84,7 @@ namespace MoviesAPI.Controllers
         }
 
         [HttpGet("SearchMovieByName")]
+        [AllowAnonymous]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]

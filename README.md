@@ -3,6 +3,7 @@ ASP.NET Core Web API MoviesAPI
 
 
 ![MoviesAPI](img/1.png)
+![MoviesAPI](img/1.png)
 
 
 ## Program

@@ -2,12 +2,12 @@
 {
     public interface IRepository<TEntity, TKey>
     {
-        IEnumerable<TEntity> GetAllRepository();
-        TEntity GetByIdRepository(TKey id);
-        bool AddRepository(TEntity entity);
-        bool UpdateRepository(TEntity entity);
-        bool DeleteRepository(TEntity entity);
+        Task<List<TEntity>> GetAllRepository();
+        Task <TEntity> GetByIdRepository(TKey id);
+        Task AddRepository(TEntity entity);
+        void UpdateRepository(TEntity entity);
+        void DeleteRepository(TEntity entity);
         bool ExistsByIdRepository(TKey id);
-        bool SaveRepository();
+        Task SaveRepository();
     }
 }

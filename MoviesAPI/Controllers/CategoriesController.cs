@@ -1,42 +1,44 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MoviesAPI.DTOs;
 using MoviesAPI.Services;
 
 namespace MoviesAPI.Controllers
 {
+    [Authorize(Roles = "Admin")]
     [Route("api/[controller]")]
     [ApiController]
     public class CategoriesController : ControllerBase
     {
         private readonly ICategoryService _categoryService;
-        private readonly IMapper _mapper;
 
-        public CategoriesController(ICategoryService categoryService, IMapper mapper)
+        public CategoriesController(ICategoryService categoryService)
         {
             _categoryService = categoryService;
-            _mapper = mapper;
         }
 
         // Get Categories
+        [AllowAnonymous]
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public IActionResult GetCategories()
+        public async Task<IActionResult> GetCategories()
         {
-            var listCategoriesDTO = _categoryService.GetAllAsyncService();
+            var listCategoriesDTO = await _categoryService.GetAllAsyncService();
             return Ok(listCategoriesDTO);
         }
 
         // Get Category by Id
+        [AllowAnonymous]
         [HttpGet("{categoryId:int}", Name = "GetCategoriaById")]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public IActionResult GetCategoryById(int categoryId)
+        public async Task<IActionResult> GetCategoryById(int categoryId)
         {
-            var itemCategoryDTO = _categoryService.GetByIdAsyncService(categoryId);
+            var itemCategoryDTO = await _categoryService.GetByIdAsyncService(categoryId);
 
             if (itemCategoryDTO == null)
             {
@@ -64,8 +66,7 @@ namespace MoviesAPI.Controllers
                 return BadRequest(ModelState);
             }
 
-            // Await the asynchronous method and handle potential null reference
-            if (categoryCreateDTO.Name == null || await _categoryService.ExistsByNameAsyncService(categoryCreateDTO.Name))
+            if (string.IsNullOrEmpty(categoryCreateDTO.Name) || await _categoryService.ExistsByNameAsyncService(categoryCreateDTO.Name))
             {
                 ModelState.AddModelError("", "Category already exists or name is null");
                 return StatusCode(404, ModelState);

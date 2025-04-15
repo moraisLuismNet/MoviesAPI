@@ -12,100 +12,85 @@ namespace MoviesAPI.Repository
             _context = context;
         }
 
-        // List of Movies sorted by Name
-        public ICollection<Movie> GetAllRepository()
+        public async Task<List<Movie>> GetAllRepository()
         {
-            return _context.Movies.OrderBy(c => c.Name).ToList();
+            return await _context.Movies
+                .OrderBy(m => m.Name)
+                .ToListAsync();
         }
 
-        IEnumerable<Movie> IRepository<Movie, int>.GetAllRepository()
+        public async Task<Movie> GetByIdRepository(int id)
         {
-            return GetAllRepository();
+            return await _context.Movies
+                .Include(m => m.Category)
+                .FirstOrDefaultAsync(m => m.IdMovie == id);
         }
 
-        // List of Movies by Category
-        public ICollection<Movie> GetByCategoryRepository(int categoryId)
+        public async Task<IEnumerable<Movie>> GetByCategoryRepository(int categoryId)
         {
-            return _context.Movies.Include(ca => ca.Category).Where(ca => ca.categoryId == categoryId).ToList();
+            return await _context.Movies
+                .Include(m => m.Category)
+                .Where(m => m.categoryId == categoryId)
+                .ToListAsync();
         }
 
-        IEnumerable<Movie> IMovieRepository.GetByCategoryRepository(int categoryId)
+        public async Task<IEnumerable<Movie>> SearchByNameRepository(string name)
         {
-            return GetByCategoryRepository(categoryId);
-        }
+            IQueryable<Movie> query = _context.Movies.Include(m => m.Category);
 
-        // Search Movie by Name
-        public IEnumerable<Movie> SearchByNameRepository(string name)
-        {
-            IQueryable<Movie> query = _context.Movies;
             if (!string.IsNullOrEmpty(name))
             {
-                query = query.Where(e => e.Name.Contains(name) || e.Synopsis.Contains(name));
+                query = query.Where(m =>
+                    m.Name.Contains(name) ||
+                    m.Synopsis.Contains(name));
             }
-            return query.ToList();
+
+            return await query.ToListAsync();
         }
 
-        // Get Movie by ID
-        public Movie GetByIdRepository(int movieId)
+        public async Task AddRepository(Movie entity)
         {
-            return _context.Movies.FirstOrDefault(c => c.IdMovie == movieId);
+            entity.CreationDate = DateTime.Now;
+            await _context.Movies.AddAsync(entity);
         }
 
-        // Check Movie by ID
-        public bool ExistsByIdRepository(int movieId)
+        public void UpdateRepository(Movie entity)
         {
-            return _context.Movies.Any(c => c.IdMovie == movieId);
-        }
+            entity.CreationDate = DateTime.Now;
+            var existingEntity = _context.Movies
+                .AsTracking()
+                .FirstOrDefault(m => m.IdMovie == entity.IdMovie);
 
-        // Check Movie By Name
-        public bool ExistsByNameRepository(string name)
-        {
-            bool value = _context.Movies.Any(c => c.Name.ToLower().Trim() == name.ToLower().Trim());
-            return value;
-        }
-
-        // Create, Update and Delete Movie
-        public bool AddRepository(Movie movie)
-        {
-            movie.CreationDate = DateTime.Now;
-            _context.Movies.Add(movie);
-            return SaveRepository();
-        }
-
-        public bool UpdateRepository(Movie movie)
-        {
-            movie.CreationDate = DateTime.Now;
-            var MovieExistsByIdRepository = _context.Movies.Find(movie.IdMovie);
-            if (MovieExistsByIdRepository != null)
+            if (existingEntity != null)
             {
-                _context.Entry(MovieExistsByIdRepository).CurrentValues.SetValues(movie);
+                _context.Entry(existingEntity).CurrentValues.SetValues(entity);
             }
             else
             {
-                _context.Movies.Update(movie);
+                _context.Movies.Update(entity);
             }
-
-            return SaveRepository();
         }
 
-        public bool DeleteRepository(Movie movie)
+        public void DeleteRepository(Movie entity)
         {
-            try
-            {
-                _context.Movies.Remove(movie);
-                return SaveRepository();  // Asume que SaveRepository devuelve bool
-            }
-            catch
-            {
-                return false;
-            }
+            _context.Movies.Remove(entity);
         }
 
-        // Save changes
-        public bool SaveRepository()
+        public bool ExistsByIdRepository(int id)
         {
-            return _context.SaveChanges() >= 0 ? true : false;
+            return _context.Movies.Any(m => m.IdMovie == id);
         }
 
+        public bool ExistsByNameRepository(string name)
+        {
+            return _context.Movies
+                .Any(m => m.Name.ToLower().Trim() == name.ToLower().Trim());
+        }
+
+        public async Task SaveRepository()
+        {
+            await _context.SaveChangesAsync();
+        }
+        
     }
 }

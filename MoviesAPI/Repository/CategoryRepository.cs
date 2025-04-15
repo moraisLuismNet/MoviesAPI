@@ -1,84 +1,69 @@
-﻿using MoviesAPI.Models;
+﻿using Microsoft.EntityFrameworkCore;
+using MoviesAPI.Models;
 
 namespace MoviesAPI.Repository
 {
     public class CategoryRepository : ICategoryRepository
     {
-
         private readonly MoviesAPIDbContext _context;
 
         public CategoryRepository(MoviesAPIDbContext context)
-        { 
+        {
             _context = context;
         }
 
-        IEnumerable<Category> IRepository<Category, int>.GetAllRepository()
+        public async Task<List<Category>> GetAllRepository()
         {
-            return GetAllRepository();
+            return await _context.Categories.OrderBy(c => c.Name).ToListAsync();
         }
 
-        // List of Categories sorted by Name
-        public ICollection<Category> GetAllRepository()
+        public async Task<Category> GetByIdRepository(int id)
         {
-            return _context.Categories.OrderBy(c => c.Name).ToList();
+            return await _context.Categories.FirstOrDefaultAsync(c => c.IdCategory == id);
         }
 
-        // Category by ID
-        public Category GetByIdRepository(int CategoryId)
+        public async Task AddRepository(Category entity)
         {
-            return _context.Categories.FirstOrDefault(c => c.IdCategory == CategoryId);
+            entity.CreationDate = DateTime.Now;
+            await _context.Categories.AddAsync(entity);
         }
 
-        // Check Category by ID
-        public bool ExistsByIdRepository(int CategoryId)
+        public void UpdateRepository(Category entity)
         {
-            return _context.Categories.Any(c => c.IdCategory == CategoryId);
-        }
+            entity.CreationDate = DateTime.Now;
+            var existingEntity = _context.Categories
+                .AsTracking()
+                .FirstOrDefault(c => c.IdCategory == entity.IdCategory);
 
-        // Check Category by Name
-        public bool ExistsByNameRepository(string name)
-        {
-            bool value = _context.Categories.Any(c => c.Name.ToLower().Trim() == name.ToLower().Trim());
-            return value;
-        }
-
-        // Create Category
-        public bool AddRepository(Category category)
-        {
-            category.CreationDate = DateTime.Now;
-            _context.Categories.Add(category);
-            return SaveRepository();
-        }
-
-        // Update Category
-        public bool UpdateRepository(Category category)
-        {
-            category.CreationDate = DateTime.Now;
-            var CategoryExistsById = _context.Categories.Find(category.IdCategory);
-            if (CategoryExistsById != null)
+            if (existingEntity != null)
             {
-                _context.Entry(CategoryExistsById).CurrentValues.SetValues(category);
+                _context.Entry(existingEntity).CurrentValues.SetValues(entity);
             }
             else
             {
-                _context.Categories.Update(category);
+                _context.Categories.Update(entity);
             }
-
-            return SaveRepository();
         }
 
-        // Delete Category
-        public bool DeleteRepository(Category category)
+        public void DeleteRepository(Category entity)
         {
-            _context.Categories.Remove(category);
-            return SaveRepository();
+            _context.Categories.Remove(entity);
         }
 
-        // Save changes
-        public bool SaveRepository()
+        public bool ExistsByIdRepository(int id)
         {
-            return _context.SaveChanges() >= 0 ? true : false;
+            return _context.Categories.Any(c => c.IdCategory == id);
         }
 
+        public bool ExistsByNameRepository(string name)
+        {
+            return _context.Categories
+                .Any(c => c.Name.ToLower().Trim() == name.ToLower().Trim());
+        }
+
+        public async Task SaveRepository()
+        {
+            await _context.SaveChangesAsync();
+        }
     }
 }

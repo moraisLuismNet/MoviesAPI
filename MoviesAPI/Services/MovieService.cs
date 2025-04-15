@@ -16,28 +16,27 @@ namespace MoviesAPI.Services
             _mapper = mapper;
         }
 
-        
-        public async Task<IEnumerable<MovieDTO>> GetAllAsyncService()
+        public async Task<List<MovieDTO>> GetAllAsyncService()
         {
-            var movies = _movieRepository.GetAllRepository();
-            return _mapper.Map<IEnumerable<MovieDTO>>(movies);
+            var movies = await _movieRepository.GetAllRepository();
+            return _mapper.Map<List<MovieDTO>>(movies);
         }
 
         public async Task<MovieDTO> GetByIdAsyncService(int movieId)
         {
-            var movie = _movieRepository.GetByIdRepository(movieId);
+            var movie = await _movieRepository.GetByIdRepository(movieId);
             return _mapper.Map<MovieDTO>(movie);
         }
 
         public async Task<IEnumerable<MovieDTO>> GetByCategoryAsyncService(int categoryId)
         {
-            var movies = _movieRepository.GetByCategoryRepository(categoryId);
+            var movies = await _movieRepository.GetByCategoryRepository(categoryId);
             return _mapper.Map<IEnumerable<MovieDTO>>(movies);
         }
 
         public async Task<IEnumerable<MovieDTO>> SearchByNameAsyncService(string name)
         {
-            var movies = _movieRepository.SearchByNameRepository(name);
+            var movies = await _movieRepository.SearchByNameRepository(name);
             return _mapper.Map<IEnumerable<MovieDTO>>(movies);
         }
 
@@ -51,10 +50,8 @@ namespace MoviesAPI.Services
             var movie = _mapper.Map<Movie>(movieCreateDTO);
             movie.CreationDate = DateTime.Now;
 
-            if (!_movieRepository.AddRepository(movie))
-            {
-                throw new Exception($"Something went wrong while saving the record {movie.Name}");
-            }
+            await _movieRepository.AddRepository(movie);
+            await _movieRepository.SaveRepository();
 
             return _mapper.Map<MovieDTO>(movie);
         }
@@ -66,7 +63,7 @@ namespace MoviesAPI.Services
                 throw new ArgumentException("ID mismatch");
             }
 
-            var existingMovie = _movieRepository.GetByIdRepository(movieId);
+            var existingMovie = await _movieRepository.GetByIdRepository(movieId);
             if (existingMovie == null)
             {
                 throw new KeyNotFoundException($"Movie with ID {movieId} not found");
@@ -75,36 +72,28 @@ namespace MoviesAPI.Services
             var movie = _mapper.Map<Movie>(movieDTO);
             movie.CreationDate = DateTime.Now;
 
-            if (!_movieRepository.UpdateRepository(movie))
-            {
-                throw new Exception($"Something went wrong updating the record {movie.Name}");
-            }
+            _movieRepository.UpdateRepository(movie);
+            await _movieRepository.SaveRepository();
         }
 
         public async Task<bool> DeleteAsyncService(int movieId)
         {
-            try
-            {
-                var movie = _movieRepository.GetByIdRepository(movieId);
-                if (movie == null) return false;
+            var movie = await _movieRepository.GetByIdRepository(movieId);
+            if (movie == null) return false;
 
-                return _movieRepository.DeleteRepository(movie);
-            }
-            catch (Exception)
-            {
-                // Log the error if needed
-                return false;
-            }
+            _movieRepository.DeleteRepository(movie);
+            await _movieRepository.SaveRepository();
+            return true;
         }
 
         public async Task<bool> ExistsByIdAsyncService(int movieId)
         {
-            return _movieRepository.ExistsByIdRepository(movieId);
+            return await Task.FromResult(_movieRepository.ExistsByIdRepository(movieId));
         }
 
         public async Task<bool> ExistsByNameAsyncService(string name)
         {
-            return _movieRepository.ExistsByNameRepository(name);
+            return await Task.FromResult(_movieRepository.ExistsByNameRepository(name));
         }
     }
 }
