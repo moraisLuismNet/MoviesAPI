@@ -12,33 +12,38 @@ namespace MoviesAPI.Repository
             _context = context;
         }
 
+        IEnumerable<Category> IRepository<Category, int>.GetAllRepository()
+        {
+            return GetAllRepository();
+        }
+
         // List of Categories sorted by Name
-        public ICollection<Category> GetCategoriesRepository()
+        public ICollection<Category> GetAllRepository()
         {
             return _context.Categories.OrderBy(c => c.Name).ToList();
         }
 
         // Category by ID
-        public Category GetCategoryByIdRepository(int CategoryId)
+        public Category GetByIdRepository(int CategoryId)
         {
             return _context.Categories.FirstOrDefault(c => c.IdCategory == CategoryId);
         }
 
         // Check Category by ID
-        public bool CategoryExistsByIdRepository(int CategoryId)
+        public bool ExistsByIdRepository(int CategoryId)
         {
             return _context.Categories.Any(c => c.IdCategory == CategoryId);
         }
 
         // Check Category by Name
-        public bool CategoryExistsByNameRepository(string name)
+        public bool ExistsByNameRepository(string name)
         {
             bool value = _context.Categories.Any(c => c.Name.ToLower().Trim() == name.ToLower().Trim());
             return value;
         }
 
         // Create Category
-        public bool CreateCategoryRepository(Category category)
+        public bool AddRepository(Category category)
         {
             category.CreationDate = DateTime.Now;
             _context.Categories.Add(category);
@@ -46,7 +51,7 @@ namespace MoviesAPI.Repository
         }
 
         // Update Category
-        public bool UpdateCategoryRepository(Category category)
+        public bool UpdateRepository(Category category)
         {
             category.CreationDate = DateTime.Now;
             var CategoryExistsById = _context.Categories.Find(category.IdCategory);
@@ -63,7 +68,7 @@ namespace MoviesAPI.Repository
         }
 
         // Delete Category
-        public bool DeleteCategoryRepository(Category category)
+        public bool DeleteRepository(Category category)
         {
             _context.Categories.Remove(category);
             return SaveRepository();
@@ -74,5 +79,6 @@ namespace MoviesAPI.Repository
         {
             return _context.SaveChanges() >= 0 ? true : false;
         }
+
     }
 }

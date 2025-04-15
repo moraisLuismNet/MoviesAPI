@@ -2,14 +2,8 @@
 
 namespace MoviesAPI.Services
 {
-    public interface ICategoryService
+    public interface ICategoryService : IService<CategoryDTO, CategoryCreateDTO, int>
     {
-        IEnumerable<CategoryDTO> GetAllCategoriesService();
-        CategoryDTO GetCategoryByIdService(int id);
-        CategoryDTO CreateCategoryService(CategoryCreateDTO categoryCreateDTO);
-        bool UpdateCategoryService(CategoryDTO categoryDTO);
-        bool DeleteCategoryService(int id);
-        bool CategoryExistsByNameService(string name);
-        bool CategoryExistsByIdService(int id);
+        Task<bool> ExistsByNameAsyncService(string name);
     }
 }

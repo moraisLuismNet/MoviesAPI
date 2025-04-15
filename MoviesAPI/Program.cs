@@ -19,9 +19,11 @@ builder.Services.AddSwaggerGen();
 
 // Services
 builder.Services.AddScoped<ICategoryService, CategoryService>();
+builder.Services.AddScoped<IMovieService, MovieService>();
 
 // Repositories
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
+builder.Services.AddScoped<IMovieRepository, MovieRepository>();
 
 // AutoMapper
 builder.Services.AddAutoMapper(typeof(MoviesMapper));

@@ -1,6 +1,10 @@
 ## MoviesAPI
 ASP.NET Core Web API MoviesAPI
 
+
+![MoviesAPI](img/1.png)
+
+
 ## Program
 ```cs
 builder.Services.AddDbContext<MoviesAPIDbContext>(options =>

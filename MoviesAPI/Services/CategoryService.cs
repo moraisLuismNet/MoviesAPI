@@ -16,56 +16,79 @@ namespace MoviesAPI.Services
             _mapper = mapper;
         }
 
-        public IEnumerable<CategoryDTO> GetAllCategoriesService()
+        public async Task<IEnumerable<CategoryDTO>> GetAllAsyncService()
         {
-            var categories = _categoryRepository.GetCategoriesRepository();
+            var categories = _categoryRepository.GetAllRepository();
             return _mapper.Map<IEnumerable<CategoryDTO>>(categories);
         }
 
-        public CategoryDTO GetCategoryByIdService(int id)
+        public async Task<CategoryDTO> GetByIdAsyncService(int id)
         {
-            var category = _categoryRepository.GetCategoryByIdRepository(id);
+            var category = _categoryRepository.GetByIdRepository(id);
             return _mapper.Map<CategoryDTO>(category);
         }
-
-        public CategoryDTO CreateCategoryService(CategoryCreateDTO categoryCreateDTO)
+        
+        public async Task<CategoryDTO> CreateAsyncService(CategoryCreateDTO categoryCreateDTO)
         {
+            if (await ExistsByNameAsyncService(categoryCreateDTO.Name))
+            {
+                throw new InvalidOperationException("The category already exists");
+            }
+
             var category = _mapper.Map<Category>(categoryCreateDTO);
             category.CreationDate = DateTime.Now;
 
-            if (!_categoryRepository.CreateCategoryRepository(category))
+            if (!_categoryRepository.AddRepository(category))
             {
-                return null;
+                throw new Exception($"Something went wrong while saving the record {category.Name}");
+
             }
 
             return _mapper.Map<CategoryDTO>(category);
         }
-
-        public bool UpdateCategoryService(CategoryDTO categoryDTO)
+        
+        public async Task UpdateAsyncService(int categoryId,CategoryDTO categoryDTO)
         {
-            var category = _mapper.Map<Category>(categoryDTO);
-            return _categoryRepository.UpdateCategoryRepository(category);
-        }
-
-        public bool DeleteCategoryService(int id)
-        {
-            var category = _categoryRepository.GetCategoryByIdRepository(id);
-            if (category == null)
+            if (categoryId != categoryDTO.IdCategory)
             {
-                return false;
+                throw new ArgumentException("ID mismatch");
             }
 
-            return _categoryRepository.DeleteCategoryRepository(category);
+            var existingCategory = _categoryRepository.GetByIdRepository(categoryId);
+            if (existingCategory == null)
+            {
+                throw new KeyNotFoundException($"Category with ID {categoryId} not found");
+            }
+
+            var category = _mapper.Map<Category>(categoryDTO);
+            category.CreationDate = DateTime.Now;
+
+            if (!_categoryRepository.UpdateRepository(category))
+            {
+                throw new Exception($"Something went wrong updating the record {category.Name}");
+            }
+
         }
 
-        public bool CategoryExistsByNameService(string name)
+        public async Task<bool> DeleteAsyncService(int categoryId)
         {
-            return _categoryRepository.CategoryExistsByNameRepository(name);
+            var category = _categoryRepository.GetByIdRepository(categoryId);
+            if (category == null)
+            {
+                throw new KeyNotFoundException($"Category with ID {categoryId} not found");
+            }
+
+            return _categoryRepository.DeleteRepository(category);
         }
 
-        public bool CategoryExistsByIdService(int id)
+        public async Task<bool> ExistsByNameAsyncService(string name)
         {
-            return _categoryRepository.CategoryExistsByIdRepository(id);
+            return _categoryRepository.ExistsByNameRepository(name);
+        }
+        
+        public async Task<bool> ExistsByIdAsyncService(int id)
+        {
+            return _categoryRepository.ExistsByIdRepository(id);
         }
     }
 }

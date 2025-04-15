@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using MoviesAPI.Models;
 
@@ -11,9 +12,11 @@ using MoviesAPI.Models;
 namespace MoviesAPI.Migrations
 {
     [DbContext(typeof(MoviesAPIDbContext))]
-    partial class MoviesAPIDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250415071712_Movies")]
+    partial class Movies
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -50,7 +53,7 @@ namespace MoviesAPI.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("IdMovie"));
 
-                    b.Property<int>("Clasification")
+                    b.Property<int>("Clasificacion")
                         .HasColumnType("int");
 
                     b.Property<DateTime>("CreationDate")

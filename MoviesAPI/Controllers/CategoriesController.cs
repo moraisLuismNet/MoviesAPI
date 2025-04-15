@@ -7,7 +7,7 @@ namespace MoviesAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class CategoriesController : Controller
+    public class CategoriesController : ControllerBase
     {
         private readonly ICategoryService _categoryService;
         private readonly IMapper _mapper;
@@ -24,7 +24,7 @@ namespace MoviesAPI.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         public IActionResult GetCategories()
         {
-            var listCategoriesDTO = _categoryService.GetAllCategoriesService();
+            var listCategoriesDTO = _categoryService.GetAllAsyncService();
             return Ok(listCategoriesDTO);
         }
 
@@ -36,7 +36,7 @@ namespace MoviesAPI.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult GetCategoryById(int categoryId)
         {
-            var itemCategoryDTO = _categoryService.GetCategoryByIdService(categoryId);
+            var itemCategoryDTO = _categoryService.GetByIdAsyncService(categoryId);
 
             if (itemCategoryDTO == null)
             {
@@ -46,13 +46,13 @@ namespace MoviesAPI.Controllers
             return Ok(itemCategoryDTO);
         }
 
-        // Create Category
+        // CreateCategory
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public IActionResult CreateCategory([FromBody] CategoryCreateDTO categoryCreateDTO)
+        public async Task<IActionResult> CreateCategory([FromBody] CategoryCreateDTO categoryCreateDTO)
         {
             if (!ModelState.IsValid)
             {
@@ -64,13 +64,14 @@ namespace MoviesAPI.Controllers
                 return BadRequest(ModelState);
             }
 
-            if (_categoryService.CategoryExistsByNameService(categoryCreateDTO.Name))
+            // Await the asynchronous method and handle potential null reference
+            if (categoryCreateDTO.Name == null || await _categoryService.ExistsByNameAsyncService(categoryCreateDTO.Name))
             {
-                ModelState.AddModelError("", "Category already exists");
+                ModelState.AddModelError("", "Category already exists or name is null");
                 return StatusCode(404, ModelState);
             }
 
-            var categoryDTO = _categoryService.CreateCategoryService(categoryCreateDTO);
+            var categoryDTO = await _categoryService.CreateAsyncService(categoryCreateDTO);
 
             if (categoryDTO == null)
             {
@@ -88,7 +89,7 @@ namespace MoviesAPI.Controllers
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public IActionResult UpdateCategory(int categoryId, [FromBody] CategoryDTO categoryDTO)
+        public async Task<IActionResult> UpdateCategory(int categoryId, [FromBody] CategoryDTO categoryDTO)
         {
             if (!ModelState.IsValid)
             {
@@ -100,18 +101,24 @@ namespace MoviesAPI.Controllers
                 return BadRequest(ModelState);
             }
 
-            if (!_categoryService.CategoryExistsByIdService(categoryId))
+            try
             {
-                return NotFound($"Category with ID not found {categoryId}");
+                await _categoryService.UpdateAsyncService(categoryId, categoryDTO);
+                return NoContent();
             }
-
-            if (!_categoryService.UpdateCategoryService(categoryDTO))
+            catch (KeyNotFoundException ex)
             {
-                ModelState.AddModelError("", $"Something went wrong updating the registry {categoryDTO.Name}");
+                return NotFound(ex.Message);
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError("", $"Something went wrong updating the registry: {ex.Message}");
                 return StatusCode(500, ModelState);
             }
-
-            return NoContent();
         }
 
         // Delete category
@@ -121,14 +128,14 @@ namespace MoviesAPI.Controllers
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public IActionResult DeleteCategory(int categoryId)
+        public async Task<IActionResult> DeleteCategory(int categoryId)
         {
-            if (!_categoryService.CategoryExistsByIdService(categoryId))
+            if (!await _categoryService.ExistsByIdAsyncService(categoryId))
             {
-                return NotFound();
+                return NotFound($"Category with ID {categoryId} not found.");
             }
 
-            if (!_categoryService.DeleteCategoryService(categoryId))
+            if (!await _categoryService.DeleteAsyncService(categoryId))
             {
                 ModelState.AddModelError("", $"Something went wrong deleting the record with id {categoryId}");
                 return StatusCode(500, ModelState);
