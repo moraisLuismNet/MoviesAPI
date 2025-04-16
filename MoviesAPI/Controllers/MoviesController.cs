@@ -1,5 +1,4 @@
-﻿using AutoMapper;
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MoviesAPI.DTOs;
 using MoviesAPI.Services;
@@ -18,6 +17,7 @@ namespace MoviesAPI.Controllers
             _movieService = movieService;
         }
 
+        [ResponseCache(Duration = 20)]
         [HttpGet]
         [AllowAnonymous]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -35,6 +35,7 @@ namespace MoviesAPI.Controllers
             }
         }
 
+        [ResponseCache(Duration = 20)]
         [HttpGet("{movieId:int}", Name = "GetMovieById")]
         [AllowAnonymous]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -61,6 +62,7 @@ namespace MoviesAPI.Controllers
             }
         }
 
+        [ResponseCache(Duration = 20)]
         [HttpGet("GetMoviesByCategory/{categoryId:int}")]
         [AllowAnonymous]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -83,6 +85,7 @@ namespace MoviesAPI.Controllers
             }
         }
 
+        [ResponseCache(Duration = 20)]
         [HttpGet("SearchMovieByName")]
         [AllowAnonymous]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -110,7 +113,7 @@ namespace MoviesAPI.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status409Conflict)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> CreateMovie([FromBody] MovieCreateDTO movieCreateDTO)
+        public async Task<IActionResult> CreateMovie([FromForm] MovieCreateDTO movieCreateDTO)
         {
             if (!ModelState.IsValid)
             {
@@ -137,7 +140,7 @@ namespace MoviesAPI.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> UpdateMovie(int movieId, [FromBody] MovieDTO movieDTO)
+        public async Task<IActionResult> UpdateMovie(int movieId, [FromForm] MovieUpdateDTO movieUpdateDTO)
         {
             if (!ModelState.IsValid)
             {
@@ -146,7 +149,7 @@ namespace MoviesAPI.Controllers
 
             try
             {
-                await _movieService.UpdateAsyncService(movieId, movieDTO);
+                await _movieService.UpdateAsyncService(movieId, movieUpdateDTO);
                 return NoContent();
             }
             catch (ArgumentException ex)

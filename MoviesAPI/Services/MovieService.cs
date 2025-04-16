@@ -9,11 +9,13 @@ namespace MoviesAPI.Services
     {
         private readonly IMovieRepository _movieRepository;
         private readonly IMapper _mapper;
+        private readonly IFileManagerService _fileManagerService;
 
-        public MovieService(IMovieRepository movieRepository, IMapper mapper)
+        public MovieService(IMovieRepository movieRepository, IMapper mapper, IFileManagerService fileManagerService)
         {
             _movieRepository = movieRepository;
             _mapper = mapper;
+            _fileManagerService = fileManagerService;
         }
 
         public async Task<List<MovieDTO>> GetAllAsyncService()
@@ -48,6 +50,11 @@ namespace MoviesAPI.Services
             }
 
             var movie = _mapper.Map<Movie>(movieCreateDTO);
+
+            if (movieCreateDTO.ImageFile is not null)
+            {
+                movie.RouteImage = await ProcessImage(movieCreateDTO.ImageFile);
+            }
             movie.CreationDate = DateTime.Now;
 
             await _movieRepository.AddRepository(movie);
@@ -56,9 +63,9 @@ namespace MoviesAPI.Services
             return _mapper.Map<MovieDTO>(movie);
         }
 
-        public async Task UpdateAsyncService(int movieId, MovieDTO movieDTO)
+        public async Task UpdateAsyncService(int movieId, MovieUpdateDTO movieUpdateDTO)
         {
-            if (movieId != movieDTO.IdMovie)
+            if (movieId != movieUpdateDTO.IdMovie)
             {
                 throw new ArgumentException("ID mismatch");
             }
@@ -69,10 +76,25 @@ namespace MoviesAPI.Services
                 throw new KeyNotFoundException($"Movie with ID {movieId} not found");
             }
 
-            var movie = _mapper.Map<Movie>(movieDTO);
-            movie.CreationDate = DateTime.Now;
+            // Map changes to the existing model
+            _mapper.Map(movieUpdateDTO, existingMovie);
 
-            _movieRepository.UpdateRepository(movie);
+            if (movieUpdateDTO.ImageFile is not null)
+            {
+                try
+                {
+                    // Process new image and delete the old one if it exists
+                    existingMovie.RouteImage = await ProcessImage(movieUpdateDTO.ImageFile, existingMovie.RouteImage);
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception("Error processing image", ex);
+                }
+            }
+
+            existingMovie.CreationDate = DateTime.Now;
+
+            _movieRepository.UpdateRepository(existingMovie);
             await _movieRepository.SaveRepository();
         }
 
@@ -82,6 +104,12 @@ namespace MoviesAPI.Services
             if (movie == null) return false;
 
             _movieRepository.DeleteRepository(movie);
+
+            if (!string.IsNullOrWhiteSpace(movie.RouteImage))
+            {
+                await _fileManagerService.DeleteFile(movie.RouteImage, "img");
+            }
+
             await _movieRepository.SaveRepository();
             return true;
         }
@@ -94,6 +122,31 @@ namespace MoviesAPI.Services
         public async Task<bool> ExistsByNameAsyncService(string name)
         {
             return await Task.FromResult(_movieRepository.ExistsByNameRepository(name));
+        }
+
+        private async Task<string> ProcessImage(IFormFile imageFile, string existingImagePath = null)
+        {
+            if (!string.IsNullOrWhiteSpace(existingImagePath))
+            {
+                try
+                {
+                    await _fileManagerService.DeleteFile(existingImagePath, "img");
+                }
+                catch (Exception ex)
+                {
+                    // Log the error but continue with the process
+                    Console.WriteLine($"Error deleting old image: {ex.Message}");
+                }
+            }
+
+            using var memoryStream = new MemoryStream();
+            await imageFile.CopyToAsync(memoryStream);
+
+            var content = memoryStream.ToArray();
+            var extension = Path.GetExtension(imageFile.FileName);
+            var contentType = imageFile.ContentType;
+
+            return await _fileManagerService.SaveFile(content, extension, "img", contentType);
         }
     }
 }

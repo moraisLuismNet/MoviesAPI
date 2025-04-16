@@ -26,6 +26,7 @@ namespace MoviesAPI.Models
                 entity.Property(e => e.Password).HasMaxLength(500);
                 entity.Property(e => e.Role).HasMaxLength(50);
             });
+
         }
     }
 }

@@ -6,6 +6,7 @@ using MoviesAPI.Services;
 
 namespace MoviesAPI.Controllers
 {
+    [ResponseCache(Duration = 20)]
     [Authorize(Roles = "Admin")]
     [Route("api/[controller]")]
     [ApiController]
@@ -18,7 +19,7 @@ namespace MoviesAPI.Controllers
             _categoryService = categoryService;
         }
 
-        // Get Categories
+        [ResponseCache(Duration = 20)]
         [AllowAnonymous]
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
@@ -29,7 +30,7 @@ namespace MoviesAPI.Controllers
             return Ok(listCategoriesDTO);
         }
 
-        // Get Category by Id
+        [ResponseCache(Duration = 20)]
         [AllowAnonymous]
         [HttpGet("{categoryId:int}", Name = "GetCategoriaById")]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
@@ -48,7 +49,6 @@ namespace MoviesAPI.Controllers
             return Ok(itemCategoryDTO);
         }
 
-        // CreateCategory
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -83,28 +83,27 @@ namespace MoviesAPI.Controllers
             return CreatedAtRoute("GetCategoriaById", new { categoryId = categoryDTO.IdCategory }, categoryDTO);
         }
 
-        // Update category
         [HttpPut("{categoryId:int}", Name = "UpdateCategory")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> UpdateCategory(int categoryId, [FromBody] CategoryDTO categoryDTO)
+        public async Task<IActionResult> UpdateCategory(int categoryId, [FromBody] CategoryUpdateDTO categoryUpdateDTO)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            if (categoryDTO == null || categoryId != categoryDTO.IdCategory)
+            if (categoryUpdateDTO == null || categoryId != categoryUpdateDTO.IdCategory)
             {
                 return BadRequest(ModelState);
             }
 
             try
             {
-                await _categoryService.UpdateAsyncService(categoryId, categoryDTO);
+                await _categoryService.UpdateAsyncService(categoryId, categoryUpdateDTO);
                 return NoContent();
             }
             catch (KeyNotFoundException ex)
@@ -122,7 +121,6 @@ namespace MoviesAPI.Controllers
             }
         }
 
-        // Delete category
         [HttpDelete("{categoryId:int}", Name = "DeleteCategory")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]

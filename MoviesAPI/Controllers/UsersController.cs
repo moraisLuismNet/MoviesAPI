@@ -17,6 +17,7 @@ namespace MoviesAPI.Controllers
             _userService = userService;
         }
 
+        [ResponseCache(Duration = 20)]
         [HttpGet]
         public async Task<ActionResult<List<UserDTO>>> GetUsers()
         {

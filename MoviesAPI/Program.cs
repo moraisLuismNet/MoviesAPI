@@ -87,12 +87,17 @@ builder.Services.AddCors(options =>
     });
 });
 
+// Cache
+builder.Services.AddResponseCaching();
+
 // Services
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<IMovieService, MovieService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddTransient<HashService>();
+builder.Services.AddTransient<IFileManagerService, FileManagerService>();
+builder.Services.AddHttpContextAccessor();
 
 // Repositories
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();

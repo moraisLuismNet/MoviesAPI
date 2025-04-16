@@ -2,7 +2,7 @@
 
 namespace MoviesAPI.Services
 {
-    public interface IMovieService : IService<MovieDTO, MovieCreateDTO, int>
+    public interface IMovieService : IService<MovieDTO, MovieCreateDTO, MovieUpdateDTO, int>
     {
         Task<IEnumerable<MovieDTO>> GetByCategoryAsyncService(int categoryId);
         Task<IEnumerable<MovieDTO>> SearchByNameAsyncService(string name);

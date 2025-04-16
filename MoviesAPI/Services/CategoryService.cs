@@ -44,9 +44,9 @@ namespace MoviesAPI.Services
             return _mapper.Map<CategoryDTO>(category);
         }
 
-        public async Task UpdateAsyncService(int categoryId, CategoryDTO categoryDTO)
+        public async Task UpdateAsyncService(int categoryId, CategoryUpdateDTO categoryUpdateDTO)
         {
-            if (categoryId != categoryDTO.IdCategory)
+            if (categoryId != categoryUpdateDTO.IdCategory)
             {
                 throw new ArgumentException("ID mismatch");
             }
@@ -57,7 +57,7 @@ namespace MoviesAPI.Services
                 throw new KeyNotFoundException($"Category with ID {categoryId} not found");
             }
 
-            var category = _mapper.Map<Category>(categoryDTO);
+            var category = _mapper.Map<Category>(categoryUpdateDTO);
             category.CreationDate = DateTime.Now;
 
             _categoryRepository.UpdateRepository(category);
