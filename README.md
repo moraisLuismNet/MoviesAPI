@@ -20,3 +20,5 @@ builder.Services.AddDbContext<MoviesAPIDbContext>(options =>
         "Connection": "Server=*;Database=MoviesAPI;Trusted_Connection=True;TrustServerCertificate=True;MultipleActiveResultSets=True"
 }
 ``` 
+
+[DeepWiki moraisLuismNet/MoviesAPI](https://deepwiki.com/moraisLuismNet/MoviesAPI)
