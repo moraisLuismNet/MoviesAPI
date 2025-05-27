@@ -50,13 +50,13 @@ MoviesAPI/
 │   ├───ITokenService.cs  
 │   ├───IUserService.cs  
 │   ├───MovieService.cs  
-│   ├───TokenService.cs 
+│   ├───TokenService.cs   
 │   └───UserService.cs  
 ├───Validators/  
 │   ├───FileTypeValidator.cs  
 │   ├───GroupFileType.cs  
 │   └───WeightFileValidator.cs  
-├───appsettings.json
+├───appsettings.json  
 └───Program.cs
 
 ![MoviesAPI](img/1.png)
