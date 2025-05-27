@@ -24,7 +24,7 @@ MoviesAPI/
 │   ├───UserLoginDTO.cs  
 │   ├───UserLoginResponseDTO.cs  
 │   └───UserRegistrationDTO.cs  
-├───Models/
+├───Models/  
 │   ├───Category.cs  
 │   ├───Movie.cs  
 │   ├───MoviesAPIDbContext.cs  
